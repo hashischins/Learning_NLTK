@@ -7,11 +7,11 @@ Created on Wed Aug  2 15:05:59 2017
 """
 
 import nltk
-nltk.download('all')
+nltk.download()
 from nltk.text import Text
 
-nltk.download('tokenizers/punkt/PY3/english.pickle')
-
+#Tokenizing
+from nltk import word_tokenize,sent_tokenize
 
 fieldids = nltk.corpus.gutenberg.fileids()  
 print(fieldids) 
@@ -45,8 +45,181 @@ for fileid in gutenberg.fileids():
     1) Average Word Length
     2) Average Sentence Length
     3) Number of times each vocabulary item appears in the text on average (Or you could call it Lexical Diversity Score)
-    
-#Tokenizing
-from nltk import word_tokenize,sent_tokenize
+"""
+
+#Sent function: To make long form text into Sentences
+macbeth_sentences = gutenberg.sents('shakespeare-macbeth.txt')
+macbeth_sentences
+macbeth_sentences[1037]
+#[u'Good', u'night', u',', u'and', u'better', u'health', u'Attend', u'his', u'Maiesty']
+longest_len = max([len(s) for s in macbeth_sentences])
+[s for s in macbeth_sentences if len(s) == longest_len]
+
+gutenberg.raw('shakespeare-hamlet.txt') # Generate the raw file of whatever text you want to read.
+len(gutenberg.raw('shakespeare-hamlet.txt')) # Output: 162881 - Length of text
+
+from nltk.corpus import webtext
+for fileid in webtext.fileids():
+    print (fileid, webtext.raw(fileid)[:65], '...')
+
+
+
+from nltk.corpus import nps_chat
+chatroom = nps_chat.posts('10-19-20s_706posts.xml')
+chatroom[123]
+chatroom[420]
+chatroom[69]
+chatroom[500]
+
+#brown corpus
+#good for stylistics
+from nltk.corpus import brown
+brown.categories()
+brown.words(categories='news')
+brown.words(fileids=['cg22'])
+brown.sents(categories=['news', 'editorial','reviews'])
+
+
+#News Practice
+from nltk.corpus import brown
+news_text = brown.words(categories='news')
+fdist = nltk.FreqDist([w.lower() for w in news_text])
+modals = ['can', 'could', 'may', 'might', 'must', 'will']
+for m in modals:
+    print (m + ':', fdist[m])
+
+from nltk.corpus import brown    
+brown.words(categories='reviews')
+reviews_text = brown.words(categories='reviews')
+fdist = nltk.FreqDist([w.lower() for w in reviews_text])
+Descriptors = ['happy', 'sad', 'depressed', 'overjoyed', 'high']
+for d in Descriptors:
+    print (d + ":", fdist[d], end = ' ')
+
+
+# NLTK Conditional Frequencies
+# Trying to get this to work.
+cfd = nltk.ConditionalFreqDist()
+       for genre in brown.categories()
+       for word in brown.words(categories=genre))
+genres = ['news', 'religion', 'hobbies', 'science_fiction', 'romance', 'humor']
+modals = ['can', 'could', 'may', 'might', 'must', 'will']
+cfd.tabulate(conditions=genres, samples=modals)
+
+
+"""
+
+
+
+# out: can: 94 could: 87 may: 93 might: 38 must: 53 will: 389
+
+
+
+
+#                 can could  may might must will
+#           news   93   86   66   38   50  389
+#       religion   82   59   78   12   54   71
+#        hobbies  268   58  131   22   83  264
+#science_fiction   16   49    4   12    8   16
+#        romance   74  193   11   51   45   43
+#          humor   16   30    8    8    9   13
+
+#Reuters corpus
+## documents are classified into 90 topics and two sets: training and test
+## splitting for training and testing is covered in Chapter 6
+from nltk.corpus import reuters
+reuters.fileids()
+## fileids are formatted e.g. test/14826, training/988
+reuters.categories()
+# out: u'acq', u'alum', u'barley', u'bop', u'carcass', u'castor-oil', u'cocoa', u'coconut', u'coconut-oil', u'coffee', u'copper',
+
+#  !! important to note this corpus the categories overlap
+
+reuters.categories('training/9865')
+# out: [u'barley', u'corn', u'grain', u'wheat']
+reuters.categories(['training/9865', 'training/9880'])
+# out: [u'barley', u'corn', u'grain', u'money-fx', u'wheat'][u'barley', u'corn', u'grain', u'money-fx', u'wheat']
+reuters.fileids('barley')
+# out: [u'test/15618', u'test/15649', u'test/15676', u'test/15728', ...
+reuters.fileids(['barley', 'corn'])
+# out: [u'test/14832', u'test/14858', u'test/15033', u'test/15043', u'test/15106', u'test/15287',...
+
+#pulling out a set of words, the first words in upcase are the title
+reuters.words('training/9865')[:14]
+# [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', u'BIDS',
+# u'DETAILED', u'French', u'operators', u'have', u'requested', u'licences',
+#u'to', u'export']
+reuters.words(['training/9865', 'training/9880'])
+# out: [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', ...]
+reuters.words(categories='barley')
+# [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', ...]
+reuters.words(categories=['barley', 'corn'])
+# [u'THAI', u'TRADE', u'DEFICIT', u'WIDENS', u'IN', ...]
+
+# INAUGURAL ADDRESS corpus
+
+from nltk.corpus import inaugural
+inaugural.fileids()
+# out: [u'1789-Washington.txt', u'1793-Washington.txt', u'1797-Adams.txt', u'1801-Jefferson.txt', u'1805-Jefferson.txt', u'1809-Madison.txt'...
+# grab the first 4 chars of the fileids to grab the years
+[fileid[:4] for fileid in inaugural.fileids()]
+# out: [u'1789', u'1793', u'1797', u'1801', u'1805',...
+cfd = nltk.ConditionalFreqDist(
+        (target, fileid[:4])
+        for fileid in inaugural.fileids()
+        for w in inaugural.words(fileid)
+        for target in ['america', 'citizen']
+        if w.lower().startswith(target)) #convert corpus to lowercase then check whether they start with either the targets america or citizen
+# requires matplotlib
+cfd.plot()
+
+# ANNOTATED TEXT CORPORA
+
+# Loading your own corpus
+# see Pathology project: need to add pathology report text to txt files
+# using just a folder on my computer
+from nltk.corpus import PlaintextCorpusReader
+corpus_root = '/usr/share/dict'
+wordlists = PlaintextCorpusReader(corpus_root, '.*')
+wordlists.fileids()
+# ['README', 'connectives', 'propernames', 'web2', 'web2a', 'words']
+
+wordlists.words('connectives')
+# [u'the', u'of', u'and', u'to', u'a', u'in', u'that', ...]
+
+#Counting words by genre
+from nltk.corpus import brown
+cfd = nltk.ConditionalFreqDist(
+        (genre, word)
+        for genre in brown.categories()
+        for word in brown.words(categories=genre))
+
+genre_word = [(genre, word) # producing pairs consisting of the genre and the word
+        for genre in ['news', 'romance'] # for each genre...
+        for word in brown.words(categories=genre)] # loop over every word in the genre
+len(genre_word
+#out: 170576
+
+genre_world[:4]
+#[('news', u'The'), ('news', u'Fulton'), ('news', u'County'), ('news', u'Grand')]
+# pairs at the beginning of the list genre_word will be of the form ('news', word)
+
+genre_word[-4:]
+# at the end of genre_word will be the form of ('romance', word)
+
+cfd = nltk.ConditionalFreqDist(genre_word)
+    cfd # we can type the name of the variable to inspect it
+
+cfd.conditions()
+# out:['romance', 'news'] and varify it has two conditions
+
+
+
+
+
+
+
+
+
 
 

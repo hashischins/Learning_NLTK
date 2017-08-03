@@ -9,26 +9,49 @@ Created on Wed Aug  2 15:05:59 2017
 import nltk
 nltk.download()
 from nltk.text import Text
+import matplotlib
+
+""" I couldn't manage to install a lot of the packages directly from NLTK. 
+
+The GUI Installer would halt all downloads and freeze when a package like 'sample_grammars' didn't 
+give explicit permissions. To overcome this, we use the code block below to trick the server into thinking
+the various packages giving trouble are already installed. (Dirty Code is from Alvas on StackOverflow)
+
+I'm not sure what your problems your computer is facing, but tricking those 4 packages were already 
+installed seemed to do the trick.
+
+"""
+
+#The Ol' Trickeroo
+dler = nltk.downloader.Downloader()
+dler._update_index()
+dler._status_cache['sample_grammars'] = 'installed'
+dler._status_cache['spanish_grammars'] = 'installed'
+dler._status_cache['basque_grammars'] = 'installed'
+dler._status_cache['large_grammars'] = 'installed'
+
+dler.download('all')
 
 #Tokenizing
 from nltk import word_tokenize,sent_tokenize
-
 fieldids = nltk.corpus.gutenberg.fileids()  
 print(fieldids) 
 
 hamlet = nltk.corpus.gutenberg.words('shakespeare-hamlet.txt')
 len(hamlet)
 
-
-#You cannot carry out concordancing (and other tasks from Section 1.1) using a text defined
-#this way. Instead you have to make the following statement:
+#To concord, you need to define it this way
 hamlet = nltk.Text(nltk.corpus.gutenberg.words('shakespeare-hamlet.txt'))
 
-#test Cases
+#Test Cases
 hamlet.concordance('anger')
 hamlet.concordance('sorrow')
 
-#Alternative way of doing the same thing
+
+
+
+
+#Alternative way of getting the same fileids list
 from nltk.corpus import gutenberg
 gutenberg.fileids()
 
@@ -88,6 +111,7 @@ modals = ['can', 'could', 'may', 'might', 'must', 'will']
 for m in modals:
     print (m + ':', fdist[m])
 
+#Reviews Practice
 from nltk.corpus import brown    
 brown.words(categories='reviews')
 reviews_text = brown.words(categories='reviews')
@@ -98,24 +122,15 @@ for d in Descriptors:
 
 
 # NLTK Conditional Frequencies
-# Trying to get this to work.
-cfd = nltk.ConditionalFreqDist()
-       for genre in brown.categories()
-       for word in brown.words(categories=genre))
+cfd = nltk.ConditionalFreqDist(
+        (genre,word)
+for genre in brown.categories()
+for word in brown.words(categories=genre))
 genres = ['news', 'religion', 'hobbies', 'science_fiction', 'romance', 'humor']
 modals = ['can', 'could', 'may', 'might', 'must', 'will']
 cfd.tabulate(conditions=genres, samples=modals)
 
-
-"""
-
-
-
-# out: can: 94 could: 87 may: 93 might: 38 must: 53 will: 389
-
-
-
-
+#output
 #                 can could  may might must will
 #           news   93   86   66   38   50  389
 #       religion   82   59   78   12   54   71
@@ -123,6 +138,7 @@ cfd.tabulate(conditions=genres, samples=modals)
 #science_fiction   16   49    4   12    8   16
 #        romance   74  193   11   51   45   43
 #          humor   16   30    8    8    9   13
+
 
 #Reuters corpus
 ## documents are classified into 90 topics and two sets: training and test
@@ -132,45 +148,34 @@ reuters.fileids()
 ## fileids are formatted e.g. test/14826, training/988
 reuters.categories()
 # out: u'acq', u'alum', u'barley', u'bop', u'carcass', u'castor-oil', u'cocoa', u'coconut', u'coconut-oil', u'coffee', u'copper',
-
 #  !! important to note this corpus the categories overlap
 
 reuters.categories('training/9865')
-# out: [u'barley', u'corn', u'grain', u'wheat']
 reuters.categories(['training/9865', 'training/9880'])
-# out: [u'barley', u'corn', u'grain', u'money-fx', u'wheat'][u'barley', u'corn', u'grain', u'money-fx', u'wheat']
 reuters.fileids('barley')
-# out: [u'test/15618', u'test/15649', u'test/15676', u'test/15728', ...
 reuters.fileids(['barley', 'corn'])
-# out: [u'test/14832', u'test/14858', u'test/15033', u'test/15043', u'test/15106', u'test/15287',...
+
 
 #pulling out a set of words, the first words in upcase are the title
 reuters.words('training/9865')[:14]
-# [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', u'BIDS',
-# u'DETAILED', u'French', u'operators', u'have', u'requested', u'licences',
-#u'to', u'export']
 reuters.words(['training/9865', 'training/9880'])
-# out: [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', ...]
 reuters.words(categories='barley')
-# [u'FRENCH', u'FREE', u'MARKET', u'CEREAL', u'EXPORT', ...]
 reuters.words(categories=['barley', 'corn'])
-# [u'THAI', u'TRADE', u'DEFICIT', u'WIDENS', u'IN', ...]
 
-# INAUGURAL ADDRESS corpus
 
+#Inaugural Address Corpus
 from nltk.corpus import inaugural
 inaugural.fileids()
-# out: [u'1789-Washington.txt', u'1793-Washington.txt', u'1797-Adams.txt', u'1801-Jefferson.txt', u'1805-Jefferson.txt', u'1809-Madison.txt'...
+
 # grab the first 4 chars of the fileids to grab the years
 [fileid[:4] for fileid in inaugural.fileids()]
-# out: [u'1789', u'1793', u'1797', u'1801', u'1805',...
 cfd = nltk.ConditionalFreqDist(
         (target, fileid[:4])
         for fileid in inaugural.fileids()
         for w in inaugural.words(fileid)
         for target in ['america', 'citizen']
-        if w.lower().startswith(target)) #convert corpus to lowercase then check whether they start with either the targets america or citizen
-# requires matplotlib
+        if w.lower().startswith(target)) 
+#convert corpus to lowercase then check whether they start with either the targets america or citizen
 cfd.plot()
 
 # ANNOTATED TEXT CORPORA
@@ -183,9 +188,7 @@ corpus_root = '/usr/share/dict'
 wordlists = PlaintextCorpusReader(corpus_root, '.*')
 wordlists.fileids()
 # ['README', 'connectives', 'propernames', 'web2', 'web2a', 'words']
-
 wordlists.words('connectives')
-# [u'the', u'of', u'and', u'to', u'a', u'in', u'that', ...]
 
 #Counting words by genre
 from nltk.corpus import brown
@@ -197,23 +200,16 @@ cfd = nltk.ConditionalFreqDist(
 genre_word = [(genre, word) # producing pairs consisting of the genre and the word
         for genre in ['news', 'romance'] # for each genre...
         for word in brown.words(categories=genre)] # loop over every word in the genre
-len(genre_word
-#out: 170576
+len(genre_word)
 
-genre_world[:4]
-#[('news', u'The'), ('news', u'Fulton'), ('news', u'County'), ('news', u'Grand')]
+genre_word[:4]
 # pairs at the beginning of the list genre_word will be of the form ('news', word)
-
 genre_word[-4:]
 # at the end of genre_word will be the form of ('romance', word)
 
 cfd = nltk.ConditionalFreqDist(genre_word)
     cfd # we can type the name of the variable to inspect it
-
 cfd.conditions()
-# out:['romance', 'news'] and varify it has two conditions
-
-
 
 
 
